@@ -14,16 +14,385 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      activity_log: {
+        Row: {
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          new_value: string | null
+          old_value: string | null
+          phase_id: string | null
+          project_id: string | null
+          qa_item_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          activity_type: Database["public"]["Enums"]["activity_type"]
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          new_value?: string | null
+          old_value?: string | null
+          phase_id?: string | null
+          project_id?: string | null
+          qa_item_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          activity_type?: Database["public"]["Enums"]["activity_type"]
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          new_value?: string | null
+          old_value?: string | null
+          phase_id?: string | null
+          project_id?: string | null
+          qa_item_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "activity_log_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "activity_log_qa_item_id_fkey"
+            columns: ["qa_item_id"]
+            isOneToOne: false
+            referencedRelation: "qa_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string | null
+          full_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string | null
+          full_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      project_phases: {
+        Row: {
+          created_at: string
+          description: string | null
+          discipline: Database["public"]["Enums"]["discipline_type"]
+          id: string
+          name: string
+          project_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          discipline: Database["public"]["Enums"]["discipline_type"]
+          id?: string
+          name: string
+          project_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          discipline?: Database["public"]["Enums"]["discipline_type"]
+          id?: string
+          name?: string
+          project_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_phases_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      projects: {
+        Row: {
+          client: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          name: string
+          start_date: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          client?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name: string
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          client?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          name?: string
+          start_date?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      qa_attachments: {
+        Row: {
+          created_at: string
+          file_name: string
+          file_path: string
+          file_size: number | null
+          file_type: string | null
+          id: string
+          qa_item_id: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name: string
+          file_path: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          qa_item_id: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string
+          file_path?: string
+          file_size?: number | null
+          file_type?: string | null
+          id?: string
+          qa_item_id?: string
+          uploaded_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_attachments_qa_item_id_fkey"
+            columns: ["qa_item_id"]
+            isOneToOne: false
+            referencedRelation: "qa_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_items: {
+        Row: {
+          assigned_to: string | null
+          category: string | null
+          closed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discipline: Database["public"]["Enums"]["discipline_type"]
+          due_date: string | null
+          id: string
+          item_number: string
+          phase_id: string | null
+          project_id: string
+          resolved_at: string | null
+          severity: Database["public"]["Enums"]["qa_severity"]
+          started_at: string | null
+          status: Database["public"]["Enums"]["qa_status"]
+          title: string
+          updated_at: string
+          verified_at: string | null
+        }
+        Insert: {
+          assigned_to?: string | null
+          category?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discipline: Database["public"]["Enums"]["discipline_type"]
+          due_date?: string | null
+          id?: string
+          item_number: string
+          phase_id?: string | null
+          project_id: string
+          resolved_at?: string | null
+          severity?: Database["public"]["Enums"]["qa_severity"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["qa_status"]
+          title: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Update: {
+          assigned_to?: string | null
+          category?: string | null
+          closed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discipline?: Database["public"]["Enums"]["discipline_type"]
+          due_date?: string | null
+          id?: string
+          item_number?: string
+          phase_id?: string | null
+          project_id?: string
+          resolved_at?: string | null
+          severity?: Database["public"]["Enums"]["qa_severity"]
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["qa_status"]
+          title?: string
+          updated_at?: string
+          verified_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_items_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      qa_reviews: {
+        Row: {
+          comment: string
+          created_at: string
+          id: string
+          qa_item_id: string
+          reviewer_id: string
+          reviewer_role: Database["public"]["Enums"]["app_role"]
+          status: Database["public"]["Enums"]["qa_status"]
+        }
+        Insert: {
+          comment: string
+          created_at?: string
+          id?: string
+          qa_item_id: string
+          reviewer_id: string
+          reviewer_role: Database["public"]["Enums"]["app_role"]
+          status: Database["public"]["Enums"]["qa_status"]
+        }
+        Update: {
+          comment?: string
+          created_at?: string
+          id?: string
+          qa_item_id?: string
+          reviewer_id?: string
+          reviewer_role?: Database["public"]["Enums"]["app_role"]
+          status?: Database["public"]["Enums"]["qa_status"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "qa_reviews_qa_item_id_fkey"
+            columns: ["qa_item_id"]
+            isOneToOne: false
+            referencedRelation: "qa_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      activity_type:
+        | "status_change"
+        | "review_added"
+        | "attachment_uploaded"
+        | "attachment_deleted"
+        | "item_edited"
+        | "import_performed"
+      app_role: "admin" | "pm" | "senior_engineer" | "junior_engineer"
+      discipline_type:
+        | "electrical"
+        | "mechanical"
+        | "plumbing"
+        | "civil"
+        | "architectural"
+      qa_severity: "critical" | "high" | "medium" | "low"
+      qa_status: "noted" | "open" | "resolved" | "verified" | "closed"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +519,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      activity_type: [
+        "status_change",
+        "review_added",
+        "attachment_uploaded",
+        "attachment_deleted",
+        "item_edited",
+        "import_performed",
+      ],
+      app_role: ["admin", "pm", "senior_engineer", "junior_engineer"],
+      discipline_type: [
+        "electrical",
+        "mechanical",
+        "plumbing",
+        "civil",
+        "architectural",
+      ],
+      qa_severity: ["critical", "high", "medium", "low"],
+      qa_status: ["noted", "open", "resolved", "verified", "closed"],
+    },
   },
 } as const
