@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/StatusBadge";
 import AddReviewDialog from "@/components/AddReviewDialog";
+import ViewReviewsDialog from "@/components/ViewReviewsDialog";
 import {
   Table,
   TableBody,
@@ -20,19 +21,49 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter, Download, AlertCircle, User, FileText, MessageSquare } from "lucide-react";
+import { Search, Filter, Download, AlertCircle, User, FileText, MessageSquare, Eye } from "lucide-react";
 import { useState } from "react";
+
+interface Review {
+  id: string;
+  comment: string;
+  status: string;
+  reviewerName: string;
+  createdAt: string;
+}
 
 const QAItems = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [severityFilter, setSeverityFilter] = useState("all");
   const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [viewReviewsDialogOpen, setViewReviewsDialogOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState<{ id: string; title: string } | null>(null);
+  const [reviews, setReviews] = useState<Record<string, Review[]>>({});
 
   const handleAddReview = (itemId: string, itemTitle: string) => {
     setSelectedItem({ id: itemId, title: itemTitle });
     setReviewDialogOpen(true);
+  };
+
+  const handleViewReviews = (itemId: string, itemTitle: string) => {
+    setSelectedItem({ id: itemId, title: itemTitle });
+    setViewReviewsDialogOpen(true);
+  };
+
+  const handleReviewSubmit = (review: Omit<Review, "id" | "createdAt">) => {
+    if (!selectedItem) return;
+    
+    const newReview: Review = {
+      ...review,
+      id: Math.random().toString(36).substr(2, 9),
+      createdAt: new Date().toISOString(),
+    };
+
+    setReviews(prev => ({
+      ...prev,
+      [selectedItem.id]: [...(prev[selectedItem.id] || []), newReview]
+    }));
   };
 
   const qaItems = [
@@ -229,15 +260,17 @@ const QAItems = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredItems.map((item) => (
-                <TableRow key={item.id} className="hover:bg-muted/50">
-                  <TableCell className="font-medium">{item.id}</TableCell>
-                  <TableCell>
-                    <div className="flex items-start gap-2 max-w-md">
-                      <AlertCircle className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
-                      <span className="line-clamp-2">{item.title}</span>
-                    </div>
-                  </TableCell>
+              {filteredItems.map((item) => {
+                const itemReviews = reviews[item.id] || [];
+                return (
+                  <TableRow key={item.id} className="hover:bg-muted/50">
+                    <TableCell className="font-medium">{item.id}</TableCell>
+                    <TableCell>
+                      <div className="flex items-start gap-2 max-w-md">
+                        <AlertCircle className="w-4 h-4 mt-0.5 text-muted-foreground flex-shrink-0" />
+                        <span className="line-clamp-2">{item.title}</span>
+                      </div>
+                    </TableCell>
                   <TableCell className="text-muted-foreground">{item.project}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1.5">
@@ -264,18 +297,32 @@ const QAItems = () => {
                     <Badge variant="secondary">{item.category}</Badge>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleAddReview(item.id, item.title)}
-                      className="gap-2"
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      Add Review
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleAddReview(item.id, item.title)}
+                        className="gap-2"
+                      >
+                        <MessageSquare className="h-4 w-4" />
+                        Add
+                      </Button>
+                      {itemReviews.length > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleViewReviews(item.id, item.title)}
+                          className="gap-2"
+                        >
+                          <Eye className="h-4 w-4" />
+                          View ({itemReviews.length})
+                        </Button>
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              );
+              })}
             </TableBody>
           </Table>
         </Card>
@@ -292,12 +339,21 @@ const QAItems = () => {
       </div>
       
       {selectedItem && (
-        <AddReviewDialog
-          open={reviewDialogOpen}
-          onOpenChange={setReviewDialogOpen}
-          qaItemId={selectedItem.id}
-          qaItemTitle={selectedItem.title}
-        />
+        <>
+          <AddReviewDialog
+            open={reviewDialogOpen}
+            onOpenChange={setReviewDialogOpen}
+            qaItemId={selectedItem.id}
+            qaItemTitle={selectedItem.title}
+            onAddReview={handleReviewSubmit}
+          />
+          <ViewReviewsDialog
+            open={viewReviewsDialogOpen}
+            onOpenChange={setViewReviewsDialogOpen}
+            qaItemTitle={selectedItem.title}
+            reviews={reviews[selectedItem.id] || []}
+          />
+        </>
       )}
     </DashboardLayout>
   );
