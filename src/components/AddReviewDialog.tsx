@@ -6,17 +6,32 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 
+interface Review {
+  id: string;
+  comment: string;
+  status: string;
+  reviewerName: string;
+  createdAt: string;
+}
+
 interface AddReviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   qaItemId: string;
   qaItemTitle: string;
+  onAddReview: (review: Omit<Review, "id" | "createdAt">) => void;
 }
 
-export default function AddReviewDialog({ open, onOpenChange, qaItemId, qaItemTitle }: AddReviewDialogProps) {
+export default function AddReviewDialog({ 
+  open, 
+  onOpenChange, 
+  qaItemId, 
+  qaItemTitle,
+  onAddReview 
+}: AddReviewDialogProps) {
   const [comment, setComment] = useState("");
   const [status, setStatus] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviewerName, setReviewerName] = useState("");
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -40,30 +55,30 @@ export default function AddReviewDialog({ open, onOpenChange, qaItemId, qaItemTi
       return;
     }
 
-    setIsSubmitting(true);
-
-    try {
-      // TODO: Implement actual API call to save review
-      // For now, just simulate success
-      await new Promise(resolve => setTimeout(resolve, 500));
-
+    if (!reviewerName.trim()) {
       toast({
-        title: "Review added",
-        description: "Your review has been successfully added",
-      });
-
-      setComment("");
-      setStatus("");
-      onOpenChange(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add review. Please try again.",
+        title: "Reviewer name required",
+        description: "Please enter your name",
         variant: "destructive",
       });
-    } finally {
-      setIsSubmitting(false);
+      return;
     }
+
+    onAddReview({
+      comment: comment.trim(),
+      status,
+      reviewerName: reviewerName.trim(),
+    });
+
+    toast({
+      title: "Review added",
+      description: "Your review has been successfully added",
+    });
+
+    setComment("");
+    setStatus("");
+    setReviewerName("");
+    onOpenChange(false);
   };
 
   return (
@@ -78,6 +93,18 @@ export default function AddReviewDialog({ open, onOpenChange, qaItemId, qaItemTi
           </DialogHeader>
 
           <div className="grid gap-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="reviewer">Your Name</Label>
+              <input
+                id="reviewer"
+                type="text"
+                placeholder="Enter your name"
+                value={reviewerName}
+                onChange={(e) => setReviewerName(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              />
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
               <Select value={status} onValueChange={setStatus}>
@@ -112,12 +139,11 @@ export default function AddReviewDialog({ open, onOpenChange, qaItemId, qaItemTi
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              disabled={isSubmitting}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Adding..." : "Add Review"}
+            <Button type="submit">
+              Add Review
             </Button>
           </DialogFooter>
         </form>
