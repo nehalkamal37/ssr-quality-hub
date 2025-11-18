@@ -48,85 +48,118 @@ const activityColors: Record<string, string> = {
   import_performed: "bg-indigo-500/10 text-indigo-500",
 };
 
+// Mock data for demonstration
+const mockActivities: ActivityLog[] = [
+  {
+    id: '1',
+    activity_type: 'status_change',
+    description: 'Changed status from Open to Resolved',
+    old_value: 'open',
+    new_value: 'resolved',
+    created_at: new Date(Date.now() - 1000 * 60 * 5).toISOString(),
+    qa_item_id: 'qa-1',
+    project_id: 'proj-1',
+    user: { full_name: 'Sarah Johnson', email: 'sarah.j@example.com' },
+    qa_item: { item_number: 'QA-2024-001', title: 'Electrical conduit routing issue' },
+    project: { name: 'Downtown Office Tower' }
+  },
+  {
+    id: '2',
+    activity_type: 'review_added',
+    description: 'Added review comment on QA item',
+    old_value: null,
+    new_value: null,
+    created_at: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    qa_item_id: 'qa-2',
+    project_id: 'proj-1',
+    user: { full_name: 'Michael Chen', email: 'michael.c@example.com' },
+    qa_item: { item_number: 'QA-2024-002', title: 'HVAC duct clearance conflict' },
+    project: { name: 'Downtown Office Tower' }
+  },
+  {
+    id: '3',
+    activity_type: 'attachment_uploaded',
+    description: 'Uploaded attachment: field_photo_north_wing.jpg',
+    old_value: null,
+    new_value: null,
+    created_at: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    qa_item_id: 'qa-1',
+    project_id: 'proj-2',
+    user: { full_name: 'Emily Rodriguez', email: 'emily.r@example.com' },
+    qa_item: { item_number: 'QA-2024-003', title: 'Concrete pour quality concern' },
+    project: { name: 'Riverside Apartments' }
+  },
+  {
+    id: '4',
+    activity_type: 'status_change',
+    description: 'Changed status from Noted to Open',
+    old_value: 'noted',
+    new_value: 'open',
+    created_at: new Date(Date.now() - 1000 * 60 * 90).toISOString(),
+    qa_item_id: 'qa-3',
+    project_id: 'proj-1',
+    user: { full_name: 'David Park', email: 'david.p@example.com' },
+    qa_item: { item_number: 'QA-2024-004', title: 'Plumbing fixture alignment' },
+    project: { name: 'Downtown Office Tower' }
+  },
+  {
+    id: '5',
+    activity_type: 'item_edited',
+    description: 'Updated item details and severity',
+    old_value: null,
+    new_value: null,
+    created_at: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+    qa_item_id: 'qa-2',
+    project_id: 'proj-3',
+    user: { full_name: 'Jessica Williams', email: 'jessica.w@example.com' },
+    qa_item: { item_number: 'QA-2024-005', title: 'Fire safety clearance issue' },
+    project: { name: 'Medical Center Expansion' }
+  },
+  {
+    id: '6',
+    activity_type: 'import_performed',
+    description: 'Imported 24 QA items from Excel spreadsheet',
+    old_value: null,
+    new_value: '24 items',
+    created_at: new Date(Date.now() - 1000 * 60 * 180).toISOString(),
+    qa_item_id: null,
+    project_id: 'proj-1',
+    user: { full_name: 'Robert Martinez', email: 'robert.m@example.com' },
+    qa_item: null,
+    project: { name: 'Downtown Office Tower' }
+  },
+  {
+    id: '7',
+    activity_type: 'attachment_deleted',
+    description: 'Deleted attachment: obsolete_drawing_v1.pdf',
+    old_value: null,
+    new_value: null,
+    created_at: new Date(Date.now() - 1000 * 60 * 240).toISOString(),
+    qa_item_id: 'qa-4',
+    project_id: 'proj-2',
+    user: { full_name: 'Amanda Foster', email: 'amanda.f@example.com' },
+    qa_item: { item_number: 'QA-2024-006', title: 'Steel beam installation angle' },
+    project: { name: 'Riverside Apartments' }
+  },
+  {
+    id: '8',
+    activity_type: 'status_change',
+    description: 'Changed status from Resolved to Verified',
+    old_value: 'resolved',
+    new_value: 'verified',
+    created_at: new Date(Date.now() - 1000 * 60 * 300).toISOString(),
+    qa_item_id: 'qa-5',
+    project_id: 'proj-3',
+    user: { full_name: 'Christopher Lee', email: 'chris.l@example.com' },
+    qa_item: { item_number: 'QA-2024-007', title: 'Window installation waterproofing' },
+    project: { name: 'Medical Center Expansion' }
+  }
+];
+
 export default function ActivityTimeline() {
-  const [activities, setActivities] = useState<ActivityLog[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [activities] = useState<ActivityLog[]>(mockActivities);
+  const [loading] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    fetchActivities();
-
-    // Subscribe to real-time updates
-    const channel = supabase
-      .channel('activity-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'activity_log'
-        },
-        () => {
-          fetchActivities();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  const fetchActivities = async () => {
-    const { data, error } = await supabase
-      .from('activity_log')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(100);
-
-    if (error) {
-      console.error('Error fetching activities:', error);
-      setLoading(false);
-      return;
-    }
-
-    // Fetch related data separately
-    const enrichedActivities = await Promise.all((data || []).map(async (activity) => {
-      const enriched: any = { ...activity };
-
-      if (activity.user_id) {
-        const { data: userData } = await supabase
-          .from('profiles')
-          .select('full_name, email')
-          .eq('id', activity.user_id)
-          .single();
-        enriched.user = userData;
-      }
-
-      if (activity.qa_item_id) {
-        const { data: qaData } = await supabase
-          .from('qa_items')
-          .select('item_number, title')
-          .eq('id', activity.qa_item_id)
-          .single();
-        enriched.qa_item = qaData;
-      }
-
-      if (activity.project_id) {
-        const { data: projectData } = await supabase
-          .from('projects')
-          .select('name')
-          .eq('id', activity.project_id)
-          .single();
-        enriched.project = projectData;
-      }
-
-      return enriched;
-    }));
-
-    setActivities(enrichedActivities);
-    setLoading(false);
-  };
 
   const handleActivityClick = (activity: ActivityLog) => {
     if (activity.qa_item_id) {
