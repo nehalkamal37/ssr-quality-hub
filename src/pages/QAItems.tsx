@@ -4,6 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import StatusBadge from "@/components/StatusBadge";
+import AddReviewDialog from "@/components/AddReviewDialog";
 import {
   Table,
   TableBody,
@@ -19,13 +20,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Filter, Download, AlertCircle, User, FileText } from "lucide-react";
+import { Search, Filter, Download, AlertCircle, User, FileText, MessageSquare } from "lucide-react";
 import { useState } from "react";
 
 const QAItems = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [severityFilter, setSeverityFilter] = useState("all");
+  const [reviewDialogOpen, setReviewDialogOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<{ id: string; title: string } | null>(null);
+
+  const handleAddReview = (itemId: string, itemTitle: string) => {
+    setSelectedItem({ id: itemId, title: itemTitle });
+    setReviewDialogOpen(true);
+  };
 
   const qaItems = [
     {
@@ -217,11 +225,12 @@ const QAItems = () => {
                 <TableHead>Assigned To</TableHead>
                 <TableHead>Due Date</TableHead>
                 <TableHead>Category</TableHead>
+                <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredItems.map((item) => (
-                <TableRow key={item.id} className="cursor-pointer hover:bg-muted/50">
+                <TableRow key={item.id} className="hover:bg-muted/50">
                   <TableCell className="font-medium">{item.id}</TableCell>
                   <TableCell>
                     <div className="flex items-start gap-2 max-w-md">
@@ -254,6 +263,17 @@ const QAItems = () => {
                   <TableCell>
                     <Badge variant="secondary">{item.category}</Badge>
                   </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleAddReview(item.id, item.title)}
+                      className="gap-2"
+                    >
+                      <MessageSquare className="h-4 w-4" />
+                      Add Review
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -270,6 +290,15 @@ const QAItems = () => {
           </div>
         )}
       </div>
+      
+      {selectedItem && (
+        <AddReviewDialog
+          open={reviewDialogOpen}
+          onOpenChange={setReviewDialogOpen}
+          qaItemId={selectedItem.id}
+          qaItemTitle={selectedItem.title}
+        />
+      )}
     </DashboardLayout>
   );
 };
