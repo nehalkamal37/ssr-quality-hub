@@ -4,9 +4,12 @@ import DashboardLayout from "@/components/DashboardLayout";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
-import { formatDistanceToNow } from "date-fns";
-import { Activity, FileUp, FileX, Edit, Upload, ArrowUpDown } from "lucide-react";
+import { formatDistanceToNow, format } from "date-fns";
+import { Activity, FileUp, FileX, Edit, Upload, ArrowUpDown, Search, Filter, X } from "lucide-react";
 
 interface ActivityLog {
   id: string;
@@ -159,7 +162,44 @@ const mockActivities: ActivityLog[] = [
 export default function ActivityTimeline() {
   const [activities] = useState<ActivityLog[]>(mockActivities);
   const [loading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [activityTypeFilter, setActivityTypeFilter] = useState("all");
+  const [projectFilter, setProjectFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
   const navigate = useNavigate();
+
+  // Get unique projects for filter
+  const uniqueProjects = Array.from(
+    new Set(activities.map(a => a.project?.name).filter(Boolean))
+  ) as string[];
+
+  // Filter activities
+  const filteredActivities = activities.filter(activity => {
+    const matchesSearch = 
+      activity.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      activity.qa_item?.item_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      activity.qa_item?.title.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesType = activityTypeFilter === "all" || activity.activity_type === activityTypeFilter;
+    const matchesProject = projectFilter === "all" || activity.project?.name === projectFilter;
+    
+    let matchesDate = true;
+    if (dateFilter !== "all") {
+      const activityDate = new Date(activity.created_at);
+      const now = new Date();
+      const hoursDiff = (now.getTime() - activityDate.getTime()) / (1000 * 60 * 60);
+      
+      if (dateFilter === "today") {
+        matchesDate = hoursDiff <= 24;
+      } else if (dateFilter === "week") {
+        matchesDate = hoursDiff <= 168;
+      } else if (dateFilter === "month") {
+        matchesDate = hoursDiff <= 720;
+      }
+    }
+    
+    return matchesSearch && matchesType && matchesProject && matchesDate;
+  });
 
   const handleActivityClick = (activity: ActivityLog) => {
     if (activity.qa_item_id) {
@@ -176,6 +216,13 @@ export default function ActivityTimeline() {
       .slice(0, 2);
   };
 
+  const clearFilters = () => {
+    setSearchQuery("");
+    setActivityTypeFilter("all");
+    setProjectFilter("all");
+    setDateFilter("all");
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -186,20 +233,117 @@ export default function ActivityTimeline() {
           </p>
         </div>
 
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="h-5 w-5" />
+              Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Search</label>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search activities..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Activity Type</label>
+                <Select value={activityTypeFilter} onValueChange={setActivityTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="status_change">Status Change</SelectItem>
+                    <SelectItem value="review_added">Review Added</SelectItem>
+                    <SelectItem value="attachment_uploaded">Attachment Uploaded</SelectItem>
+                    <SelectItem value="attachment_deleted">Attachment Deleted</SelectItem>
+                    <SelectItem value="item_edited">Item Edited</SelectItem>
+                    <SelectItem value="import_performed">Import Performed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Project</label>
+                <Select value={projectFilter} onValueChange={setProjectFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All projects" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Projects</SelectItem>
+                    {uniqueProjects.map(project => (
+                      <SelectItem key={project} value={project}>{project}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Date Range</label>
+                <Select value={dateFilter} onValueChange={setDateFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Time</SelectItem>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="week">This Week</SelectItem>
+                    <SelectItem value="month">This Month</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {(searchQuery || activityTypeFilter !== "all" || projectFilter !== "all" || dateFilter !== "all") && (
+              <div className="mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={clearFilters}
+                  className="gap-2"
+                >
+                  <X className="h-4 w-4" />
+                  Clear Filters
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
         {loading ? (
           <div className="flex justify-center p-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
           </div>
-        ) : activities.length === 0 ? (
+        ) : filteredActivities.length === 0 ? (
           <Card>
             <CardContent className="p-12 text-center">
               <Activity className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">No activities recorded yet</p>
+              <p className="text-muted-foreground">
+                {searchQuery || activityTypeFilter !== "all" || projectFilter !== "all" || dateFilter !== "all"
+                  ? "No activities match your filters"
+                  : "No activities recorded yet"}
+              </p>
             </CardContent>
           </Card>
         ) : (
           <div className="space-y-4">
-            {activities.map((activity) => {
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredActivities.length} of {activities.length} activities
+              </p>
+            </div>
+            {filteredActivities.map((activity) => {
               const Icon = activityIcons[activity.activity_type] || Activity;
               const colorClass = activityColors[activity.activity_type] || "bg-gray-500/10 text-gray-500";
 

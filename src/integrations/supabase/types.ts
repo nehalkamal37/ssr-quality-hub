@@ -143,6 +143,47 @@ export type Database = {
           },
         ]
       }
+      project_sheets: {
+        Row: {
+          created_at: string
+          description: string | null
+          discipline: Database["public"]["Enums"]["discipline_type"]
+          id: string
+          phase_id: string
+          sheet_name: string
+          sheet_number: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          discipline: Database["public"]["Enums"]["discipline_type"]
+          id?: string
+          phase_id: string
+          sheet_name: string
+          sheet_number: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          discipline?: Database["public"]["Enums"]["discipline_type"]
+          id?: string
+          phase_id?: string
+          sheet_name?: string
+          sheet_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_sheets_phase_id_fkey"
+            columns: ["phase_id"]
+            isOneToOne: false
+            referencedRelation: "project_phases"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           client: string | null
@@ -239,6 +280,7 @@ export type Database = {
           project_id: string
           resolved_at: string | null
           severity: Database["public"]["Enums"]["qa_severity"]
+          sheet_id: string | null
           started_at: string | null
           status: Database["public"]["Enums"]["qa_status"]
           title: string
@@ -260,6 +302,7 @@ export type Database = {
           project_id: string
           resolved_at?: string | null
           severity?: Database["public"]["Enums"]["qa_severity"]
+          sheet_id?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["qa_status"]
           title: string
@@ -281,6 +324,7 @@ export type Database = {
           project_id?: string
           resolved_at?: string | null
           severity?: Database["public"]["Enums"]["qa_severity"]
+          sheet_id?: string | null
           started_at?: string | null
           status?: Database["public"]["Enums"]["qa_status"]
           title?: string
@@ -300,6 +344,13 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "qa_items_sheet_id_fkey"
+            columns: ["sheet_id"]
+            isOneToOne: false
+            referencedRelation: "project_sheets"
             referencedColumns: ["id"]
           },
         ]
