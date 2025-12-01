@@ -121,6 +121,27 @@ export default function Auth() {
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading ? 'Signing in...' : 'Sign In'}
                 </Button>
+                
+                {/* Test User Credentials */}
+                <div className="mt-4 p-3 rounded-lg bg-muted/50 border border-border">
+                  <p className="text-xs text-muted-foreground mb-2">Test User Credentials:</p>
+                  <div className="text-sm space-y-1">
+                    <p><span className="text-muted-foreground">Email:</span> <code className="bg-background px-1 rounded">test@gmail.com</code></p>
+                    <p><span className="text-muted-foreground">Password:</span> <code className="bg-background px-1 rounded">test123</code></p>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    className="w-full mt-2"
+                    onClick={() => {
+                      setEmail('test@gmail.com');
+                      setPassword('test123');
+                    }}
+                  >
+                    Fill Test Credentials
+                  </Button>
+                </div>
               </form>
             </TabsContent>
             
