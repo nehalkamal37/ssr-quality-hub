@@ -127,7 +127,7 @@ export default function Auth() {
                   <p className="text-xs text-muted-foreground mb-2">Test User Credentials:</p>
                   <div className="text-sm space-y-1">
                     <p><span className="text-muted-foreground">Email:</span> <code className="bg-background px-1 rounded">test@gmail.com</code></p>
-                    <p><span className="text-muted-foreground">Password:</span> <code className="bg-background px-1 rounded">test123</code></p>
+                    <p><span className="text-muted-foreground">Password:</span> <code className="bg-background px-1 rounded">11111111</code></p>
                   </div>
                   <Button 
                     type="button" 
@@ -136,7 +136,7 @@ export default function Auth() {
                     className="w-full mt-2"
                     onClick={() => {
                       setEmail('test@gmail.com');
-                      setPassword('test123');
+                      setPassword('11111111');
                     }}
                   >
                     Fill Test Credentials
